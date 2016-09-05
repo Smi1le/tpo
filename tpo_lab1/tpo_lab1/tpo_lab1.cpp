@@ -6,6 +6,11 @@ using namespace std;
 
 std::string GetTypeTriangle(double lengthA, double lengthB, double lengthC)
 {
+	if (lengthA == 0 || lengthB == 0 || lengthC == 0 ||
+		(lengthA + lengthB) <= lengthC || (lengthA + lengthC) <= lengthB || (lengthB + lengthC) <= lengthA)
+	{
+		throw invalid_argument("Такого треугольника не существует");
+	}
 	if (lengthA == lengthB && lengthA == lengthC && lengthB == lengthC)
 	{
 		return string("Равносторонний");
@@ -14,13 +19,9 @@ std::string GetTypeTriangle(double lengthA, double lengthB, double lengthC)
 	{
 		return string("Равнобедренный");
 	}
-	else if ((lengthA + lengthB) > lengthC || (lengthA + lengthC) > lengthB || (lengthB + lengthC) > lengthA)
-	{
-		return string("Обычный");
-	}
 	else
 	{
-		throw invalid_argument("Такого треугольника не существует");
+		return string("Обычный");
 	}
 }
 
