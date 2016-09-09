@@ -9,7 +9,7 @@ double CharToDouble(char *S)
 	int k = 1;
 	double firstNumber = 0;
 	double secondNumber = 1;
-	for (int i = 0; i < strlen(S); ++i)
+	for (size_t i = 0; i < strlen(S); ++i)
 	{
 		if (k < 0) secondNumber = secondNumber * 10;
 		if (S[i] == '.' || S[i] == ',')
@@ -22,8 +22,7 @@ double CharToDouble(char *S)
 
 std::string GetTypeTriangle(double lengthA, double lengthB, double lengthC)
 {
-
-	if (lengthA == 0 || lengthB == 0 || lengthC == 0 ||
+	if (lengthA <= 0 || lengthB <= 0 || lengthC <= 0 ||
 		(lengthA + lengthB) <= lengthC || (lengthA + lengthC) <= lengthB || (lengthB + lengthC) <= lengthA)
 	{
 		throw invalid_argument("Такого треугольника не существует");
@@ -44,6 +43,7 @@ std::string GetTypeTriangle(double lengthA, double lengthB, double lengthC)
 
 
 int main(int argc, char* argv[])
+//int main()
 {
 	setlocale(LC_ALL, "rus");
 	if (argc != 4)
@@ -57,10 +57,13 @@ int main(int argc, char* argv[])
 		{
 			for (int i = 0; i != strlen(argv[1]); ++i)
 			{
-				if (isalpha(argv[j][i]))
+				if (argv[j][i] == '.' || argv[j][i] == ',' || argv[j][i] == '-')
 				{
-					throw invalid_argument("Пожалуйста, указывайте в качестве аргументов числа");
-					//cout << "Буква" << endl;
+					continue;
+				}
+				else if ((int)(argv[j][i]) < 48 || (int)(argv[j][i]) > 57)
+				{
+					throw invalid_argument("Введены неправильные параметры");
 				}
 			}
 		}
