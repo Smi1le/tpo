@@ -35,6 +35,15 @@ echo Test6
 fc.exe "out6.txt" "Reference/reference6.txt"
 if ERRORLEVEL 1 goto testFailed
 
+echo Test7
+%program% a b c >> out7.txt
+fc.exe "out7.txt" "Reference/reference7.txt"
+if ERRORLEVEL 1 goto testFailed
+
+echo Test8
+%program% фа 4 5 >> out8.txt
+fc.exe "out8.txt" "Reference/reference8.txt"
+if ERRORLEVEL 1 goto testFailed
 
 echo OK
 exit /B
