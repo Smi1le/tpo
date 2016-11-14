@@ -12,48 +12,31 @@ namespace Links
     {
         static public string GetStatusCodeForConnectToUrl(System.String str)
         {
-            Uri siteUri = new Uri(str);
-            HttpWebRequest webRequest = (HttpWebRequest)(WebRequest.Create(siteUri.GetLeftPart(UriPartial.Query)));
-
             try
             {
+                Uri siteUri = new Uri(str);
+                HttpWebRequest webRequest = (HttpWebRequest)(WebRequest.Create(siteUri.GetLeftPart(UriPartial.Query)));
                 webRequest.Timeout = 10000;
                 HttpWebResponse myHttpWebResponse = (HttpWebResponse)(webRequest.GetResponse());
                 webRequest.Abort();
-                //Console.WriteLine(myHttpWebResponse.StatusCode);
                 myHttpWebResponse.Close();
                 return myHttpWebResponse.StatusCode.ToString();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(webRequest.RequestUri);
-                Console.WriteLine((System.String)(ex.Message));
                 return (System.String)(ex.Message);
             }
         }
-    }
 
-    class App
-    {
-
-
-        /*static public Array Resize(ref Array arr, int length)
-        {
-            Array.Resize(ref newArray, length);
-        }*/
         static public string[] ExtractURLs(string str)
         {
-            // match.Groups["name"].Value - URL Name
-            // match.Groups["url"].Value - URI
             string RegexPattern = @"<a.*?href=[""'](?<url>.*?)[""'].*?>(?<name>.*?)</a>";
 
-                 // Find matches.
             System.Text.RegularExpressions.MatchCollection matches
              = System.Text.RegularExpressions.Regex.Matches(str, RegexPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
             string[] MatchList = new string[matches.Count];
 
-            // Report on each match.
             int c = 0;
             foreach (System.Text.RegularExpressions.Match match in matches)
             {
@@ -75,9 +58,10 @@ namespace Links
                 sr.Close();
                 return content;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                return "";
+
+                return (string)ex.Message;
             }
         }
 
@@ -93,45 +77,6 @@ namespace Links
             return false;
         }
 
-        static public bool CheckUrl(System.String str)
-        {
-            Uri siteUri = new Uri(str);
-            HttpWebRequest webRequest = (HttpWebRequest)(WebRequest.Create(siteUri.GetLeftPart(UriPartial.Query)));
-
-            try
-            {
-                webRequest.Timeout = 10000;
-                HttpWebResponse myHttpWebResponse = (HttpWebResponse)(webRequest.GetResponse());
-                webRequest.Abort();
-                Console.WriteLine(myHttpWebResponse.StatusCode);
-                myHttpWebResponse.Close();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(webRequest.RequestUri);
-                Console.WriteLine((System.String)(ex.Message));
-                return false;
-            }
-        }
-
-        /*static public string GetUrlDomain(string url)
-        {
-            return string;
-        }*/
-
-
-        static public void PoolsLinks(ref string[] links)
-        {
-            StreamWriter log = new StreamWriter("log.txt");
-            for(int i = 0; i != links.Length; ++i)
-            {
-                log.WriteLine(links[i] + " - " + Url.GetStatusCodeForConnectToUrl(links[i]));
-            }
-            log.Close();
-        }
-
-
         static public string[] GetListAtTwoList(string[] firstList, string[] secondList)
         {
             string[] newList = new string[firstList.Length + secondList.Length];
@@ -141,7 +86,7 @@ namespace Links
             {
                 newList[count] = firstList[count];
             }
-            for(int i = 0; i != secondList.Length; ++i)
+            for (int i = 0; i != secondList.Length; ++i)
             {
                 if (!IsRepetition(ref firstList, secondList[i]))
                 {
@@ -149,7 +94,7 @@ namespace Links
                     ++count;
                 }
                 else { ++number; }
-                
+
             }
             Array.Resize(ref newList, newList.Length - number);
             return newList;
@@ -157,64 +102,57 @@ namespace Links
 
         static public string GetAbsoluteLink(string link, string domain)
         {
-            string url = "http://" + domain;
-            if (link[0] != '/')
+            string url;
+            if (link.Length > 1)
+            {
+                url = link.Substring(0, 2) == "//" ? url = "http:" + domain : "http://" + domain;
+            }
+            else
+            {
+                url = "http://" + domain + link;
+            }
+            if (link.Length > 0 && link[0] != '/')
             {
                 url += '/';
             }
+
             return link.Contains("#") ? url + "/" + link : url + link;
         }
 
-        static public string ParseUrl(string link, string domain)
+        static public string GetCorrectLink(string link, string domain)
         {
             char[] delimiterChars = { '\\', '/', ':' };
-            if (link.Contains("@") )
+            if (link.Contains("@"))
             {
                 return "";
             }
-            if (link.Contains(".ru") || link.Contains(".com"))
+            var list1 = link.Split(delimiterChars);
+            if (list1.Length > 0 && (list1[0] == "http" || list1[0] == "https"))
             {
-                var list1 = link.Split(delimiterChars);
-                if (list1[0] == "http" || list1[0] == "https")
-                {
-                    Uri uri = new Uri(link);
-                    bool isContains = uri.Authority.Contains(domain);
-                    if (!isContains)
-                    {
-                        return "";
-                    }
-                }
-                if (link.Contains(domain))
-                {
-                    return link;
-                }
-                else { return ""; }
+                return link;
             }
-            var list = link.Split(delimiterChars);
-            bool isAbsoluteLink = false;
+            else
+            {
+                string copy = GetAbsoluteLink(link, domain);
+                
+                try
+                {
+                    Uri uri = new Uri(copy);
+                    return copy;
+                }
+                catch
+                {
+                    string str = link.Substring(0, 2) == "//" ? "http:" + domain + link : "http://" + domain + link;
+                    return str;
+                }
             
-            if(list[0] == "http")
-            {
-                isAbsoluteLink = true;
             }
-            if (isAbsoluteLink)
-            {
-                Uri uri = new Uri(link);
-                bool isContains = uri.Authority.Contains(domain);
-                if (!isContains)
-                {
-                    return "";
-                }
-                return uri.AbsolutePath;
-            }
-            return GetAbsoluteLink(link, domain);
-
         }
 
         static public void RemoveAt(ref string[] arr, int index, int length)
         {
             Array.Clear(arr, index, length);
-            for(int i = index; i < arr.Length - 1; ++i)
+            for (int i = index; i < arr.Length - 1; ++i)
             {
                 arr.SetValue(arr.GetValue(i + 1), i);
             }
@@ -226,7 +164,7 @@ namespace Links
             for (int i = links.Length - 1; i != -1; --i)
             {
                 string link = (string)links.GetValue(i);
-                string url = ParseUrl(link, domain);
+                string url = GetCorrectLink(link, domain);
                 if (url == "" || IsRepetition(ref links, url, i))
                 {
                     //Array.Clear(links, i, 1);
@@ -238,71 +176,96 @@ namespace Links
                 }
 
             }
-
-
-
             return links;
         }
 
-        static void Main(string[] args)
+
+        static public string GetCorrectStartUrl(string link)
         {
-            string content = GetHTMLDocument("http://bizmagazine.ru/");
+            char[] delimiterChars = { '\\', '/', ':' };
+            var list = link.Split(delimiterChars);
+            if (list[0] == "http" || list[0] == "https")
+            {
+                return link;
+            }
+            else
+            {
+                return "http://" + link;
+            }
+        }
+
+        static public void CheckWebSiteOnBrokenLinks(string startUrl)
+        {
+            StreamWriter badLog = new StreamWriter("badLog.txt");
+            StreamWriter log = new StreamWriter("log.txt");
+            badLog.Close();
+            log.Close();
+            string content = GetHTMLDocument(GetCorrectStartUrl(startUrl));
 
             string[] list = ExtractURLs(content);
 
-            System.Uri mainDomain = new Uri(content);
+            System.Uri mainDomain = new Uri(GetCorrectStartUrl(startUrl));
             list = GetSortedArrayLinks(list, mainDomain.Authority);
             
-            StreamWriter log= new StreamWriter("log.txt");
+            for (int i = 0; i != list.Length; ++i)
+            {
+                Console.WriteLine(list.GetValue(i));
+            }
+           
             for (int count = 0; count != list.Length; ++count)
             {
-                string statusCode = Url.GetStatusCodeForConnectToUrl(list[count]);
+                badLog = new StreamWriter("badLog.txt", true);
+                log = new StreamWriter("log.txt", true);
+                string statusCode = Url.GetStatusCodeForConnectToUrl(GetCorrectLink(list[count], mainDomain.Authority));
                 log.WriteLine(list[count] + "  -  " + statusCode);
                 Console.WriteLine(list[count] + "  -  " + statusCode);
-                if (statusCode == "OK")
+                Uri newUri = null;
+                bool flag = true;
+                try
                 {
-                    //Console.WriteLine(list[count]);
+                    newUri = new Uri(list[count]);
+                }
+                catch
+                {
+                    flag = false;
+                }
+                if (flag && statusCode == "OK" && (newUri.Authority == mainDomain.Authority))
+                {
                     string newContent = GetHTMLDocument(list[count]);
                     string[] newList = ExtractURLs(newContent);
                     newList = GetSortedArrayLinks(newList, mainDomain.Authority);
                     list = GetListAtTwoList(list, newList);
                 }
+                else if (statusCode != "OK")
+                {
+                    //Console.WriteLine("----------------------------------------------------------------------");
+                    badLog.WriteLine(list[count] + "  -  " + statusCode);
+                }
+                badLog.Close();
+                log.Close();
             }
+        }
+    }
 
-
-           /* for(int i = 0; i != list.Length; ++i)
+    class App
+    {
+        static void Main(string[] args)
+        {
+            /*if (args.Length != 1)
             {
-                Console.WriteLine(list.GetValue(i));
+                Console.WriteLine("Ошибка! Укажите адрес страницы в качестве параметра. Формат ввода link_checker.exe <http://path-to-site.com>");
+                return;
             }*/
-            Console.WriteLine(mainDomain.Authority);
-
-            // Url.CheckUrl("https://lenta.ru/rubrics/meia/");
-
-           // log.Close();
-            StreamWriter file = new StreamWriter("text.txt");
-            string[] list2 = { "kakawka", "brokkoli", "http://dom.lenta.ru/", "http://lenta.ru/articles/2016/10/27/krym_nash/" };
-            var list1 = GetListAtTwoList(list, list2);
-
-            for (int i = 0; i != list1.Length; ++i)
+            string url = "http://links.testingcourse.ru";//args[0];
+            string statusCode = Url.GetStatusCodeForConnectToUrl(Url.GetCorrectStartUrl(url));
+            if (statusCode == "OK")
             {
-                Console.WriteLine(list1.GetValue(i));
+                Url.CheckWebSiteOnBrokenLinks(Url.GetCorrectStartUrl(url));
             }
-
-            for (int i = 0; i != list1.Length; ++i)
+            else
             {
-                file.WriteLine((string)list1.GetValue(i));
+                Console.WriteLine(statusCode);
             }
-            //Console.WriteLine();
-            file.Close();
-
-            //PoolsLinks(ref list);
-
-
-            System.Uri exempleDomain = new Uri("http://hosts/");
-
-            Console.WriteLine(exempleDomain.Authority);
-            Console.WriteLine(ParseUrl("http://facebook.com/lenta.ru", "lenta.ru"));
-            Console.ReadKey();
         }
     }
 }
